@@ -1,0 +1,16 @@
+from typing import Protocol
+
+from app.domain.entities import EntityId
+from app.domain.items.entities import Item
+
+
+class ItemRepositoryProtocol(Protocol):
+    def get(self) -> list[Item]: ...
+
+    def get_by_id(self, entity_id: EntityId, /) -> Item | None: ...
+
+    def save(self, entity: Item, /) -> None: ...
+
+    def update(self, entity: Item, /) -> None: ...
+
+    def remove(self, entity: Item, /) -> None: ...

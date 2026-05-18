@@ -1,0 +1,60 @@
+[project]
+name = "python-web-frameworks"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "django==6.0.5",
+    "fastapi[standard]==0.136.1",
+    "gunicorn==26.0.0",
+    "psycopg[binary]==3.3.4",
+    "pydantic-settings==2.14.1",
+    "sqlalchemy>=2.0.49",
+]
+
+[dependency-groups]
+dev = [
+    "django-stubs==6.0.4",
+    "mypy==2.1.0",
+    "pytest>=9.0.3",
+    "ruff==0.15.13",
+    "ty==0.0.37",
+]
+
+[tool.ruff]
+output-format = "concise"
+
+[tool.ruff.lint]
+select = [
+    "E", "W", # pycodestyle
+    "F", # Pyflakes
+    "UP", # pyupgrade
+    "B", # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I", # isort
+    "PL", # Pylint
+    "RUF",
+    "ANN", # flake8-annotations
+]
+ignore = [
+    "ANN401", # any-type
+    "SIM117", # multiple-with-statements
+]
+
+[tool.ty.terminal]
+output-format = "concise"
+
+[tool.mypy]
+strict = true
+disable_error_code = [
+    # Decorators on top of @property are not supported,
+    # but pydantic use it
+    "prop-decorator",
+    "unused-ignore",
+]
+plugins = ['pydantic.mypy']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+log_cli = true
+log_cli_level = "info"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)30s - %(message)s"
