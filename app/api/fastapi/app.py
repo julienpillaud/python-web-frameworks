@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from app.api.fastapi.handlers import add_exception_handlers
+from app.api.fastapi.exceptions import add_exception_handlers
 from app.api.fastapi.items.router import router as items_router
-from app.api.fastapi.utils import lifespan_factory
+from app.api.fastapi.lifespan import lifespan_factory
 from app.core.settings import Settings
 
 

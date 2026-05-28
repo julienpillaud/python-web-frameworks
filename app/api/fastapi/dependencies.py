@@ -6,8 +6,8 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from app.core.fastapi.context import Context
 from app.core.settings import Settings
+from app.core.sqlalchemy.context import Context
 from app.infrastructure.sqlalchemy.utils import managed_session
 
 

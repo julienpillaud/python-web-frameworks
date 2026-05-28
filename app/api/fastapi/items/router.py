@@ -3,7 +3,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, status
 
 from app.api.fastapi.dependencies import get_context
-from app.core.fastapi.context import Context
+from app.core.sqlalchemy.context import Context
 from app.domain.entities import EntityId
 from app.domain.items.commands import (
     create_item_command,

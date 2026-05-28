@@ -2,11 +2,10 @@ from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 
 from fastapi import FastAPI
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from app.api.logger import logger
 from app.core.settings import Settings
+from app.infrastructure.sqlalchemy.utils import create_sql_resource
 
 
 def lifespan_factory(
@@ -15,17 +14,14 @@ def lifespan_factory(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        engine = create_engine(
-            url=str(settings.postgres_dsn),
-            **settings.postgres_params,
-        )
-        app.state.sql_engine = engine
-        app.state.sql_session_factory = sessionmaker(bind=engine)
+        sql_resource = create_sql_resource(settings=settings)
+        app.state.sql_engine = sql_resource.engine
+        app.state.sql_session_factory = sql_resource.session_factory
         logger.info("Application startup complete")
 
         yield
 
-        engine.dispose()
+        sql_resource.release()
         logger.info("Application shutdown complete")
 
     return lifespan

@@ -3,11 +3,11 @@ import uuid
 import pytest
 from starlette import status
 
-from tests.api.conftest import HTTPClient
+from tests.api.clients.base import HTTPClient
 from tests.factories.items import ItemFactory
 
 
-@pytest.mark.parametrize("client", ["fastapi", "django"], indirect=True)
+@pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
 def test_get_item(item_factory: ItemFactory, client: HTTPClient) -> None:
     item = item_factory.create_one()
 
@@ -20,7 +20,7 @@ def test_get_item(item_factory: ItemFactory, client: HTTPClient) -> None:
     assert result["description"] == item.description
 
 
-@pytest.mark.parametrize("client", ["fastapi", "django"], indirect=True)
+@pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
 def test_get_item_not_found(client: HTTPClient) -> None:
     item_id = uuid.uuid7()
 
