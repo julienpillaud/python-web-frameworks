@@ -3,11 +3,11 @@ import uuid
 import pytest
 from starlette import status
 
-from tests.api.conftest import HTTPClient
+from tests.api.clients.base import HTTPClient
 from tests.factories.items import ItemFactory
 
 
-@pytest.mark.parametrize("client", ["fastapi", "django"], indirect=True)
+@pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
 def test_update_item(item_factory: ItemFactory, client: HTTPClient) -> None:
     updated_name = "New name"
     updated_description = "New description"
@@ -23,7 +23,7 @@ def test_update_item(item_factory: ItemFactory, client: HTTPClient) -> None:
     assert result["description"] == updated_description
 
 
-@pytest.mark.parametrize("client", ["fastapi", "django"], indirect=True)
+@pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
 def test_update_item_name(item_factory: ItemFactory, client: HTTPClient) -> None:
     updated_name = "New name"
     data = {"name": updated_name}
@@ -38,7 +38,7 @@ def test_update_item_name(item_factory: ItemFactory, client: HTTPClient) -> None
     assert result["description"] == item.description
 
 
-@pytest.mark.parametrize("client", ["fastapi", "django"], indirect=True)
+@pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
 def test_update_item_description(item_factory: ItemFactory, client: HTTPClient) -> None:
     updated_description = "New description"
     data = {"description": updated_description}
@@ -53,8 +53,8 @@ def test_update_item_description(item_factory: ItemFactory, client: HTTPClient) 
     assert result["description"] == updated_description
 
 
-@pytest.mark.parametrize("client", ["fastapi", "django"], indirect=True)
-def test_get_item_not_found(client: HTTPClient) -> None:
+@pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
+def test_update_item_not_found(client: HTTPClient) -> None:
     updated_name = "Updated"
 
     response = client.patch(f"/items/{uuid.uuid7()}", json={"name": updated_name})

@@ -1,5 +1,4 @@
 from collections.abc import Iterator
-from typing import Any, Protocol
 
 import django
 import pytest
@@ -7,47 +6,28 @@ from django.conf import settings
 from django.test import Client
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from flask import Flask
 
 from app.api.fastapi.app import create_fastapi_app
 from app.api.fastapi.dependencies import get_settings
+from app.api.flask.app import create_flask_app
 from app.core.settings import Settings
+from tests.api.clients.base import HTTPClient
+from tests.api.clients.django import WrappedDjangoClient
+from tests.api.clients.flask import WrappedFlaskClient
 from tests.conftest import settings_override_func
-
-
-class HTTPClient(Protocol):
-    def get(self, *args: Any, **kwargs: Any) -> Any: ...
-    def post(self, *args: Any, **kwargs: Any) -> Any: ...
-    def patch(self, *args: Any, **kwargs: Any) -> Any: ...
-    def delete(self, *args: Any, **kwargs: Any) -> Any: ...
-
-
-class WrappedDjangoClient(HTTPClient):
-    def __init__(self, client: Client) -> None:
-        self._client = client
-
-    def get(self, *args: Any, **kwargs: Any) -> Any:
-        return self._client.get(*args, **kwargs)
-
-    def post(self, *args: Any, **kwargs: Any) -> Any:
-        if "json" in kwargs:
-            kwargs["data"] = kwargs.pop("json")
-            kwargs["content_type"] = "application/json"
-        return self._client.post(*args, **kwargs)
-
-    def patch(self, *args: Any, **kwargs: Any) -> Any:
-        if "json" in kwargs:
-            kwargs["data"] = kwargs.pop("json")
-            kwargs["content_type"] = "application/json"
-        return self._client.patch(*args, **kwargs)
-
-    def delete(self, *args: Any, **kwargs: Any) -> Any:
-        return self._client.delete(*args, **kwargs)
 
 
 @pytest.fixture(scope="session")
 def fastapi_app(app_settings: Settings) -> FastAPI:
     app = create_fastapi_app(settings=app_settings)
     app.dependency_overrides[get_settings] = settings_override_func
+    return app
+
+
+@pytest.fixture(scope="session")
+def flask_app(app_settings: Settings) -> Flask:
+    app = create_flask_app(settings=app_settings)
     return app
 
 
@@ -69,10 +49,13 @@ def django_setup(app_settings: Settings) -> None:
 def client(
     request: pytest.FixtureRequest,
     fastapi_app: FastAPI,
+    flask_app: Flask,
     django_setup: None,
 ) -> Iterator[HTTPClient]:
     if request.param == "fastapi":
         with TestClient(fastapi_app) as client:
             yield client
+    elif request.param == "flask":
+        yield WrappedFlaskClient(flask_app.test_client())
     elif request.param == "django":
         yield WrappedDjangoClient(Client())
