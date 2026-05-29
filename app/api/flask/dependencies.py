@@ -1,6 +1,7 @@
 from flask import current_app, g
 
 from app.core.sqlalchemy.context import Context
+from app.infrastructure.sqlalchemy.logger import logger
 
 
 def get_context() -> Context:
@@ -12,10 +13,19 @@ def get_context() -> Context:
 
 
 def sql_session_teardown(error: BaseException | None) -> None:
+    # In Flask, `error` is only set for unhandled exceptions
+    # The global Exception handler catches everything, so `error` is always None.
+
     sql_session = g.pop("sql_session", None)
-    if sql_session is not None:
-        if error is not None:
-            sql_session.rollback()
-        else:
-            sql_session.commit()
+    if not sql_session:
+        return
+
+    if g.pop("error", None):
+        logger.error(f"Rollback due to '{g.exception}'")
+        sql_session.rollback()
         sql_session.close()
+        return
+
+    sql_session.commit()
+    logger.info("Commit ok")
+    sql_session.close()

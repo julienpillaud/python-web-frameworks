@@ -53,7 +53,7 @@ def client(
     django_setup: None,
 ) -> Iterator[HTTPClient]:
     if request.param == "fastapi":
-        with TestClient(fastapi_app) as client:
+        with TestClient(fastapi_app, raise_server_exceptions=False) as client:
             yield client
     elif request.param == "flask":
         yield WrappedFlaskClient(flask_app.test_client())

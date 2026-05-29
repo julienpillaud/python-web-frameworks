@@ -1,12 +1,13 @@
 from typing import Any
 
 from flask.testing import FlaskClient
+from werkzeug.test import TestResponse
 
 from tests.api.clients.base import HTTPClient
 
 
 class WrappedFlaskResponse:
-    def __init__(self, response: Any) -> None:
+    def __init__(self, response: TestResponse) -> None:
         self._response = response
 
     @property
@@ -25,6 +26,8 @@ class WrappedFlaskClient(HTTPClient):
         return WrappedFlaskResponse(self._client.get(*args, **kwargs))
 
     def post(self, *args: Any, **kwargs: Any) -> Any:
+        if "params" in kwargs:
+            kwargs["query_string"] = kwargs.pop("params")
         return WrappedFlaskResponse(self._client.post(*args, **kwargs))
 
     def patch(self, *args: Any, **kwargs: Any) -> Any:
