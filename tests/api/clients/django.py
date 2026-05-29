@@ -16,6 +16,8 @@ class WrappedDjangoClient(HTTPClient):
         if "json" in kwargs:
             kwargs["data"] = kwargs.pop("json")
             kwargs["content_type"] = "application/json"
+        if "params" in kwargs:
+            kwargs["query_params"] = kwargs.pop("params")
         return self._client.post(*args, **kwargs)
 
     def patch(self, *args: Any, **kwargs: Any) -> Any:

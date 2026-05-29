@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.fastapi.dev.router import router as dev_router
 from app.api.fastapi.exceptions import add_exception_handlers
 from app.api.fastapi.items.router import router as items_router
 from app.api.fastapi.lifespan import lifespan_factory
@@ -11,5 +12,6 @@ def create_fastapi_app(settings: Settings) -> FastAPI:
 
     add_exception_handlers(app=app)
     app.include_router(items_router)
+    app.include_router(dev_router)
 
     return app

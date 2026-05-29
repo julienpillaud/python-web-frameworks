@@ -1,14 +1,20 @@
 import uuid
 
 import pytest
+from sqlalchemy.orm import Session
 from starlette import status
 
+from app.infrastructure.sqlalchemy.models.items import SQLItemModel
 from tests.api.clients.base import HTTPClient
 from tests.factories.items import ItemFactory
 
 
 @pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
-def test_update_item(item_factory: ItemFactory, client: HTTPClient) -> None:
+def test_update_item(
+    item_factory: ItemFactory,
+    client: HTTPClient,
+    session: Session,
+) -> None:
     updated_name = "New name"
     updated_description = "New description"
     data = {"name": updated_name, "description": updated_description}
@@ -21,6 +27,12 @@ def test_update_item(item_factory: ItemFactory, client: HTTPClient) -> None:
     assert result["id"] == str(item.id)
     assert result["name"] == updated_name
     assert result["description"] == updated_description
+
+    item_db = session.get(SQLItemModel, item.id)
+    assert item_db
+    assert item_db.id == item.id
+    assert item_db.name == updated_name
+    assert item_db.description == updated_description
 
 
 @pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)

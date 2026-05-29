@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from app.api.django.types import EnhancedHttpRequest
 from app.core.django.context import Context
+from app.domain.dev.commands import ItemCreateError, create_item_error_command
 from app.domain.items.commands import (
     create_item_command,
     delete_item_command,
@@ -56,3 +57,17 @@ class ItemViewDetail(View):
         context = Context()
         delete_item_command(context, item_id=item_id)
         return JsonResponse(data="", status=204, safe=False)
+
+
+class ItemViewSpecial(View):
+    body_models: ClassVar[dict[str, type[BaseModel]]] = {"POST": ItemCreateError}
+
+    def post(self, request: EnhancedHttpRequest[ItemCreateError]) -> JsonResponse:
+        error_type = request.GET.get("error_type")
+        context = Context()
+        item = create_item_error_command(
+            context,
+            item_create=request.validated_data,
+            error_type=error_type,  # ty:ignore[invalid-argument-type]
+        )
+        return JsonResponse(data=item.model_dump(), safe=False)

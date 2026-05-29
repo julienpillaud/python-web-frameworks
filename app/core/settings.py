@@ -8,7 +8,7 @@ from app.infrastructure.django.apps import DJANGO_APPS
 
 
 class DjangoSettings(BaseModel):
-    debug: bool = True
+    debug: bool = False
     secret_key: str
     root_urlconf: str = "app.api.django.urls"
     installed_apps: list[str] = DJANGO_APPS

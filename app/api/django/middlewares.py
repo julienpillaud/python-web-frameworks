@@ -3,7 +3,7 @@ from collections.abc import Callable
 from typing import Any
 
 from django.db import transaction
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse
 from pydantic import BaseModel, ValidationError
 
 from app.api.django.types import EnhancedHttpRequest
@@ -11,7 +11,6 @@ from app.api.utils import ERROR_MAPPING
 from app.domain.exceptions import DomainError
 
 DJANGO_MIDDLEWARES = [
-    "app.api.django.middlewares.DomainExceptionMiddleware",
     "app.api.django.middlewares.PydanticValidationMiddleware",
     "app.api.django.middlewares.TransactionMiddleware",
 ]
@@ -33,27 +32,6 @@ class BaseMiddleware:
                 status=400,
                 content_type="application/json",
             )
-
-
-class DomainExceptionMiddleware(BaseMiddleware):
-    def process_exception(
-        self, request: HttpRequest, exc: Exception
-    ) -> HttpResponse | None:
-        if not isinstance(exc, DomainError):
-            return None
-
-        for error_cls in type(exc).mro():
-            if issubclass(error_cls, DomainError) and error_cls in ERROR_MAPPING:
-                return JsonResponse(
-                    data={"detail": str(exc)},
-                    status=ERROR_MAPPING[error_cls],
-                )
-
-        return HttpResponse(
-            content="Internal Server Error",
-            status=500,
-            content_type="text/plain",
-        )
 
 
 class PydanticValidationMiddleware(BaseMiddleware):
@@ -92,3 +70,36 @@ class TransactionMiddleware(BaseMiddleware):
     def __call__(self, request: HttpRequest) -> HttpResponse:
         with transaction.atomic():
             return self.get_response(request)
+
+    def process_exception(
+        self,
+        request: HttpRequest,
+        exc: Exception,
+    ) -> HttpResponse:
+        # TODO: `transaction.atomic()` context manager does not handle rollback on error
+        #  is there a better way to do that?
+        transaction.set_rollback(True)
+
+        if isinstance(exc, DomainError):
+            return handle_domain_exceptions(exc)
+
+        return HttpResponse(
+            content=json.dumps({"detail": "Internal Server Error"}),
+            status=500,
+            content_type="application/json",
+        )
+
+
+def handle_domain_exceptions(exc: DomainError) -> HttpResponse:
+    status_code = 500
+
+    for error_cls in type(exc).mro():
+        if issubclass(error_cls, DomainError) and error_cls in ERROR_MAPPING:
+            status_code = ERROR_MAPPING[error_cls]
+            break
+
+    return HttpResponse(
+        content=json.dumps({"detail": str(exc)}),
+        status=status_code,
+        content_type="application/json",
+    )

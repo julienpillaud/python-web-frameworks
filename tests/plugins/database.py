@@ -10,7 +10,10 @@ from app.infrastructure.sqlalchemy.models.base import OrmEntity
 
 @pytest.fixture(scope="session")
 def engine(app_settings: Settings) -> Engine:
-    engine = create_engine(url=str(app_settings.postgres_dsn))
+    engine = create_engine(
+        url=str(app_settings.postgres_dsn),
+        **app_settings.postgres_params,
+    )
 
     OrmEntity.metadata.drop_all(engine)
     OrmEntity.metadata.create_all(engine)
