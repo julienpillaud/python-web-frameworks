@@ -1,8 +1,10 @@
-from typing import Any
+from typing import Annotated, Any
 
+from fast_depends import Depends, inject
 from flask import Blueprint, Response, request
 
 from app.api.flask.dependencies import get_context
+from app.core.sqlalchemy.context import Context
 from app.domain.entities import EntityId
 from app.domain.items.commands import (
     create_item_command,
@@ -17,15 +19,18 @@ router = Blueprint("items", __name__, url_prefix="/items")
 
 
 @router.get("")
-def get_items() -> Any:
-    context = get_context()
+@inject
+def get_items(context: Annotated[Context, Depends(get_context)]) -> Any:
     items = get_items_command(context)
     return [item.model_dump() for item in items]
 
 
 @router.get("/<item_id>")
-def get_item(item_id: EntityId) -> Response:
-    context = get_context()
+@inject
+def get_item(
+    item_id: EntityId,
+    context: Annotated[Context, Depends(get_context)],
+) -> Response:
     item = get_item_command(context, item_id=item_id)
     return Response(
         response=item.model_dump_json(),
@@ -35,8 +40,8 @@ def get_item(item_id: EntityId) -> Response:
 
 
 @router.post("")
-def create_item() -> Response:
-    context = get_context()
+@inject
+def create_item(context: Annotated[Context, Depends(get_context)]) -> Response:
     item_create = ItemCreate.model_validate(request.get_json())
     item = create_item_command(context, item_create=item_create)
     return Response(
@@ -47,8 +52,11 @@ def create_item() -> Response:
 
 
 @router.patch("/<item_id>")
-def update_item(item_id: EntityId) -> Response:
-    context = get_context()
+@inject
+def update_item(
+    item_id: EntityId,
+    context: Annotated[Context, Depends(get_context)],
+) -> Response:
     item_update = ItemUpdate.model_validate(request.get_json())
     item = update_item_command(context, item_id=item_id, item_update=item_update)
     return Response(
@@ -59,8 +67,11 @@ def update_item(item_id: EntityId) -> Response:
 
 
 @router.delete("/<item_id>")
-def delete_item(item_id: EntityId) -> Response:
-    context = get_context()
+@inject
+def delete_item(
+    item_id: EntityId,
+    context: Annotated[Context, Depends(get_context)],
+) -> Response:
     delete_item_command(context, item_id=item_id)
     return Response(
         status=204,

@@ -17,21 +17,29 @@ class WrappedFlaskResponse:
     def json(self) -> Any:
         return self._response.json
 
+    @property
+    def text(self) -> Any:
+        return self._response.text
+
 
 class WrappedFlaskClient(HTTPClient):
     def __init__(self, client: FlaskClient) -> None:
         self._client = client
 
     def get(self, *args: Any, **kwargs: Any) -> Any:
-        return WrappedFlaskResponse(self._client.get(*args, **kwargs))
+        response = self._client.get(*args, **kwargs)
+        return WrappedFlaskResponse(response=response)
 
     def post(self, *args: Any, **kwargs: Any) -> Any:
         if "params" in kwargs:
             kwargs["query_string"] = kwargs.pop("params")
-        return WrappedFlaskResponse(self._client.post(*args, **kwargs))
+        response = self._client.post(*args, **kwargs)
+        return WrappedFlaskResponse(response=response)
 
     def patch(self, *args: Any, **kwargs: Any) -> Any:
-        return WrappedFlaskResponse(self._client.patch(*args, **kwargs))
+        response = self._client.patch(*args, **kwargs)
+        return WrappedFlaskResponse(response=response)
 
     def delete(self, *args: Any, **kwargs: Any) -> Any:
-        return WrappedFlaskResponse(self._client.delete(*args, **kwargs))
+        response = self._client.delete(*args, **kwargs)
+        return WrappedFlaskResponse(response=response)

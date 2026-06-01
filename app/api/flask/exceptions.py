@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, Response, g
+from flask import Flask, Response
 from pydantic import ValidationError
 from werkzeug.exceptions import HTTPException
 
@@ -11,22 +11,10 @@ from app.domain.exceptions import DomainError
 def add_exception_handlers(app: Flask) -> None:
     @app.errorhandler(Exception)
     def exception_handler(exc: Exception) -> Response:
-        # Ensure rollback in teardown
-        g.error = True
-        g.exception = exc
-
-        return Response(
-            response=json.dumps({"detail": "Internal Server Error"}),
-            status=500,
-            content_type="application/json",
-        )
+        return Response(response="Internal Server Error", status=500)
 
     @app.errorhandler(HTTPException)
     def http_exception_handler(exc: HTTPException) -> Response:
-        # Ensure rollback in teardown
-        g.error = True
-        g.exception = exc
-
         return Response(
             response=json.dumps({"detail": exc.description}),
             status=exc.code,
@@ -35,10 +23,6 @@ def add_exception_handlers(app: Flask) -> None:
 
     @app.errorhandler(DomainError)
     def domain_exception_handler(exc: DomainError) -> Response:
-        # Ensure rollback in teardown
-        g.error = True
-        g.exception = exc
-
         status_code = 500
 
         for error_cls in type(exc).mro():
