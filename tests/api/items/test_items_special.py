@@ -27,7 +27,7 @@ def test_item_domain_error(client: HTTPClient, session: Session) -> None:
     assert item_db is None
 
 
-@pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
+@pytest.mark.parametrize("client", ["fastapi", "django"], indirect=True)
 def test_item_unexpected_error(client: HTTPClient, session: Session) -> None:
     item_id = uuid.uuid7()
 
@@ -39,6 +39,25 @@ def test_item_unexpected_error(client: HTTPClient, session: Session) -> None:
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert response.text == "Internal Server Error"
+
+    # Check rollback after error
+    item_db = session.get(SQLItemModel, item_id)
+    assert item_db is None
+
+
+@pytest.mark.parametrize("client", ["flask"], indirect=True)
+def test_item_unexpected_error_flask(client: HTTPClient, session: Session) -> None:
+    item_id = uuid.uuid7()
+
+    response = client.post(
+        "/dev/error",
+        params={"error_type": "unexpected"},
+        json={"id": str(item_id)},
+    )
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    result = response.json()
+    assert "internal error" in result["detail"].lower()
 
     # Check rollback after error
     item_db = session.get(SQLItemModel, item_id)

@@ -9,10 +9,7 @@ from app.domain.exceptions import DomainError
 
 
 def add_exception_handlers(app: Flask) -> None:
-    @app.errorhandler(Exception)
-    def exception_handler(exc: Exception) -> Response:
-        return Response(response="Internal Server Error", status=500)
-
+    # Replace the default werkzeug HTML response
     @app.errorhandler(HTTPException)
     def http_exception_handler(exc: HTTPException) -> Response:
         return Response(
