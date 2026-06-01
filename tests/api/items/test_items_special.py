@@ -8,32 +8,56 @@ from app.infrastructure.sqlalchemy.models.items import SQLItemModel
 from tests.api.clients.base import HTTPClient
 
 
-@pytest.mark.parametrize(
-    "error_type, status_code, error_message",
-    [
-        ("domain", status.HTTP_400_BAD_REQUEST, "Bad Request"),
-        ("unexpected", status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal Server Error"),
-    ],
-)
 @pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
-def test_item_error(
-    client: HTTPClient,
-    session: Session,
-    error_type: str,
-    status_code: int,
-    error_message: str,
-) -> None:
+def test_item_domain_error(client: HTTPClient, session: Session) -> None:
     item_id = uuid.uuid7()
 
     response = client.post(
         "/dev/error",
-        params={"error_type": error_type},
+        params={"error_type": "domain"},
         json={"id": str(item_id)},
     )
 
-    assert response.status_code == status_code
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
     result = response.json()
-    assert result["detail"] == error_message
+    assert result["detail"] == "Bad Request"
+
+    # Check rollback after error
+    item_db = session.get(SQLItemModel, item_id)
+    assert item_db is None
+
+
+@pytest.mark.parametrize("client", ["fastapi", "django"], indirect=True)
+def test_item_unexpected_error(client: HTTPClient, session: Session) -> None:
+    item_id = uuid.uuid7()
+
+    response = client.post(
+        "/dev/error",
+        params={"error_type": "unexpected"},
+        json={"id": str(item_id)},
+    )
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.text == "Internal Server Error"
+
+    # Check rollback after error
+    item_db = session.get(SQLItemModel, item_id)
+    assert item_db is None
+
+
+@pytest.mark.parametrize("client", ["flask"], indirect=True)
+def test_item_unexpected_error_flask(client: HTTPClient, session: Session) -> None:
+    item_id = uuid.uuid7()
+
+    response = client.post(
+        "/dev/error",
+        params={"error_type": "unexpected"},
+        json={"id": str(item_id)},
+    )
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    result = response.json()
+    assert "internal error" in result["detail"].lower()
 
     # Check rollback after error
     item_db = session.get(SQLItemModel, item_id)

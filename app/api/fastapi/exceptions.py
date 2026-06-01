@@ -9,13 +9,6 @@ from app.domain.exceptions import (
 
 
 def add_exception_handlers(app: FastAPI) -> None:
-    @app.exception_handler(Exception)
-    async def exception_handler(request: Request, exc: Exception) -> JSONResponse:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Internal Server Error"},
-        )
-
     @app.exception_handler(DomainError)
     async def domain_exception_handler(
         request: Request,

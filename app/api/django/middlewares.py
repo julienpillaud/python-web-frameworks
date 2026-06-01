@@ -83,11 +83,7 @@ class TransactionMiddleware(BaseMiddleware):
         if isinstance(exc, DomainError):
             return handle_domain_exceptions(exc)
 
-        return HttpResponse(
-            content=json.dumps({"detail": "Internal Server Error"}),
-            status=500,
-            content_type="application/json",
-        )
+        return HttpResponse(content="Internal Server Error", status=500)
 
 
 def handle_domain_exceptions(exc: DomainError) -> HttpResponse:
