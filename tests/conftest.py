@@ -3,7 +3,7 @@ from functools import lru_cache
 import pytest
 from pydantic import SecretStr
 
-from app.core.settings import DjangoSettings, Settings
+from app.core.settings import AppEnvironment, DjangoSettings, Settings
 
 pytest_plugins = [
     "tests.plugins.database",
@@ -14,6 +14,7 @@ pytest_plugins = [
 @lru_cache
 def settings_override_func() -> Settings:
     return Settings(
+        environment=AppEnvironment.TESTING,
         postgres_user="user",
         postgres_password=SecretStr("password"),
         postgres_host="localhost",

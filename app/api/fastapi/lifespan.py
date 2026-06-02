@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from app.api.logger import logger
 from app.core.settings import Settings
-from app.infrastructure.sqlalchemy.utils import create_sql_resource
+from app.infrastructure.sqlalchemy.utils import SQLResource
 
 
 def lifespan_factory(
@@ -14,9 +14,8 @@ def lifespan_factory(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        sql_resource = create_sql_resource(settings=settings)
-        app.state.sql_engine = sql_resource.engine
-        app.state.sql_session_factory = sql_resource.session_factory
+        sql_resource = SQLResource.from_settings(settings)
+        app.state.sql_resource = sql_resource
         logger.info("Application startup complete")
 
         yield

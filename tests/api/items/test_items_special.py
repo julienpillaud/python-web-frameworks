@@ -4,8 +4,18 @@ import pytest
 from fastapi import status
 from sqlalchemy.orm import Session
 
+from app.core.settings import AppEnvironment
 from app.infrastructure.sqlalchemy.models.items import SQLItemModel
 from tests.api.clients.base import HTTPClient
+
+
+@pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)
+def test_get_env(client: HTTPClient) -> None:
+    response = client.get("/dev/env")
+
+    assert response.status_code == status.HTTP_200_OK
+    result = response.json()
+    assert result["environment"] == AppEnvironment.TESTING
 
 
 @pytest.mark.parametrize("client", ["fastapi", "flask", "django"], indirect=True)

@@ -1,3 +1,4 @@
+import json
 from typing import Annotated
 
 from fast_depends import Depends, inject
@@ -8,6 +9,16 @@ from app.core.sqlalchemy.context import Context
 from app.domain.dev.commands import ItemCreateError, create_item_error_command
 
 router = Blueprint("dev", __name__, url_prefix="/dev")
+
+
+@router.get("/env")
+@inject
+def get_env(context: Annotated[Context, Depends(get_context)]) -> Response:
+    return Response(
+        json.dumps({"environment": context.environment}),
+        status=200,
+        content_type="application/json",
+    )
 
 
 @router.post("/error")
