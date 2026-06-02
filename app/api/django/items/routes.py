@@ -80,7 +80,16 @@ class ItemViewDetail(View):
         return JsonResponse(data="", status=204, safe=False)
 
 
-class ItemViewSpecial(View):
+class DevEnvView(View):
+    @inject
+    def get(self, context: Annotated[Context, Depends(get_context)]) -> JsonResponse:
+        return JsonResponse(
+            data={"environment": context.environment},
+            safe=False,
+        )
+
+
+class DevErrorView(View):
     body_models: ClassVar[dict[str, type[BaseModel]]] = {"POST": ItemCreateError}
 
     @inject(cast=False)

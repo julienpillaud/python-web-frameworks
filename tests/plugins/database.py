@@ -1,32 +1,22 @@
 from collections.abc import Iterator
 
 import pytest
-from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session
 
 from app.core.settings import Settings
-from app.infrastructure.sqlalchemy.models.base import OrmEntity
+from app.infrastructure.sqlalchemy.utils import SQLResource
 
 
 @pytest.fixture(scope="session")
-def engine(app_settings: Settings) -> Engine:
-    engine = create_engine(
-        url=str(app_settings.postgres_dsn),
-        **app_settings.postgres_params,
-    )
-
-    OrmEntity.metadata.drop_all(engine)
-    OrmEntity.metadata.create_all(engine)
-
-    return engine
+def sql_resource(app_settings: Settings) -> SQLResource:
+    sql_resource = SQLResource.from_settings(app_settings)
+    sql_resource.create_all()
+    return sql_resource
 
 
 @pytest.fixture
-def session(engine: Engine) -> Iterator[Session]:
-    with Session(engine) as session:
+def session(sql_resource: SQLResource) -> Iterator[Session]:
+    with sql_resource.session() as session:
         yield session
 
-    with Session(engine) as session:
-        for table in reversed(OrmEntity.metadata.sorted_tables):
-            session.execute(table.delete())
-        session.commit()
+    sql_resource.reset()

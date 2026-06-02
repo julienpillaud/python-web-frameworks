@@ -1,3 +1,4 @@
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, PostgresDsn, SecretStr, computed_field
@@ -5,6 +6,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.api.django.middlewares import DJANGO_MIDDLEWARES
 from app.infrastructure.django.apps import DJANGO_APPS
+
+
+class AppEnvironment(StrEnum):
+    DEVELOPMENT = "development"
+    TESTING = "testing"
+    PRODUCTION = "production"
 
 
 class DjangoSettings(BaseModel):
@@ -23,6 +30,8 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
         nested_model_default_partial_update=True,
     )
+
+    environment: AppEnvironment
 
     django: DjangoSettings
 

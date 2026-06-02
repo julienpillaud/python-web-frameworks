@@ -4,12 +4,13 @@ import django
 import pytest
 from django.conf import settings
 from django.test import Client
+from fast_depends import dependency_provider
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from flask import Flask
 
+from app.api.dependencies import get_settings
 from app.api.fastapi.app import create_fastapi_app
-from app.api.fastapi.dependencies import get_settings
 from app.api.flask.app import create_flask_app
 from app.core.settings import Settings
 from tests.api.clients.base import HTTPClient
@@ -28,6 +29,7 @@ def fastapi_app(app_settings: Settings) -> FastAPI:
 @pytest.fixture(scope="session")
 def flask_app(app_settings: Settings) -> Flask:
     app = create_flask_app(settings=app_settings)
+    dependency_provider.override(get_settings, settings_override_func)
     return app
 
 
@@ -43,6 +45,7 @@ def django_setup(app_settings: Settings) -> None:
         ALLOWED_HOSTS=["testserver"],
     )
     django.setup()
+    dependency_provider.override(get_settings, settings_override_func)
 
 
 @pytest.fixture
