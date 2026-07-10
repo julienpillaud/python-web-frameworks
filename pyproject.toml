@@ -3,23 +3,23 @@ name = "python-web-frameworks"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
-    "django==6.0.5",
+    "django==6.0.7",
     "fast-depends==3.0.8",
-    "fastapi[standard]==0.136.3",
+    "fastapi[standard]==0.139.0",
     "flask==3.1.3",
     "gunicorn==26.0.0",
     "psycopg[binary]==3.3.4",
-    "pydantic-settings==2.14.1",
-    "sqlalchemy==2.0.50",
+    "pydantic-settings==2.14.2",
+    "sqlalchemy==2.0.51",
 ]
 
 [dependency-groups]
 dev = [
-    "django-stubs==6.0.5",
-    "mypy==2.1.0",
-    "pytest>=9.0.3",
-    "ruff==0.15.14",
-    "ty==0.0.40",
+    "django-stubs==6.0.6",
+    "mypy==2.2.0",
+    "pytest==9.1.1",
+    "ruff==0.15.21",
+    "ty==0.0.58",
 ]
 
 [tool.ruff]
@@ -48,10 +48,7 @@ output-format = "concise"
 [tool.mypy]
 strict = true
 disable_error_code = [
-    # Decorators on top of @property are not supported,
-    # but pydantic use it
     "prop-decorator",
-    "unused-ignore",
 ]
 plugins = ['pydantic.mypy']
 
