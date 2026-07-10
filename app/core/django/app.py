@@ -3,7 +3,7 @@ from django.core.wsgi import get_wsgi_application
 
 from app.core.settings import Settings
 
-app_settings = Settings()  # ty: ignore[missing-argument]
+app_settings = Settings()
 settings.configure(
     DEBUG=app_settings.django.debug,
     SECRET_KEY=app_settings.django.secret_key,
